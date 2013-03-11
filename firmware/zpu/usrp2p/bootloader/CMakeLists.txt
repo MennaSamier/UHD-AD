@@ -24,7 +24,7 @@ MACRO(GEN_RMI target)
     ADD_CUSTOM_COMMAND(
         OUTPUT ${name}.rmi DEPENDS ${name}.bin
         COMMAND ${PYTHON_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/bin/bin_to_ram_macro_init.py ${name}.bin ${name}.rmi
+        ${CMAKE_SOURCE_DIR}/bin/bin_to_1kram_macro_init.py ${name}.bin ${name}.rmi
     )
     #add a top level target for output files
     ADD_CUSTOM_TARGET(
