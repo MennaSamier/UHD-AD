@@ -66,7 +66,7 @@ ethernet_mac_addr(void)
       return &src_mac_addr;
 
     eth_mac_addr_t tmp;
-    bool ok = eeprom_read(USRP2_I2C_ADDR_MBOARD, USRP2_EE_MBOARD_MAC_ADDR, &tmp, sizeof(tmp));
+    const bool ok = true;
     if (!ok || unprogrammed(&tmp, sizeof(tmp))){
       // use the default
     }
@@ -118,7 +118,7 @@ const struct ip_addr *get_ip_addr(void)
       return &src_ip_addr;
 
     struct ip_addr tmp;
-    bool ok = eeprom_read(USRP2_I2C_ADDR_MBOARD, USRP2_EE_MBOARD_IP_ADDR, &tmp, sizeof(tmp));
+    bool ok = true;
     if (!ok || unprogrammed(&tmp, sizeof(tmp))){
       // use the default
     }
@@ -130,7 +130,11 @@ const struct ip_addr *get_ip_addr(void)
 }
 
 bool set_ip_addr(const struct ip_addr *t){
+#ifdef NO_EEPROM
+    bool ok = true;
+#else
   bool ok = eeprom_write(USRP2_I2C_ADDR_MBOARD, USRP2_EE_MBOARD_IP_ADDR, t, sizeof(struct ip_addr));
+#endif
   if (ok){
     src_ip_addr = *t;
     src_ip_addr_initialized = true;
