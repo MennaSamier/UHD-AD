@@ -27,6 +27,15 @@
 #include "ethernet.h"
 #include "udp_fw_update.h"
 #include "xilinx_s3_icap.h"
+#include "i2c.h"
+
+uint16_t get_hw_rev(void) {
+#ifdef NO_EEPROM
+    return 0x0;
+#else
+#endif
+}
+
 
 //Firmware update packet handler
 void handle_udp_fw_update_packet(struct socket_address src, struct socket_address dst,

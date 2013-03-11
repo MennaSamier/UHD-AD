@@ -46,3 +46,11 @@ void start_program(void)
 	//all this does is tap that register
 	*((volatile uint32_t *) SR_ADDR_BLDRDONE) = 1;
 }
+
+void do_the_bootload_thing(void) {
+#ifdef NO_FLASH
+	puts("Starting USRP2+ without flash.");
+	return;
+#else
+#endif
+}

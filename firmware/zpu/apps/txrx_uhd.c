@@ -29,6 +29,7 @@
 #include "spi.h"
 #include "hal_io.h"
 #include "pic.h"
+#include "mdelay.h"
 #include <stdbool.h>
 #include "ethernet.h"
 #include "nonstdio.h"
@@ -46,6 +47,9 @@
 #include "udp_fw_update.h"
 #include "pkt_ctrl.h"
 #include "banal.h"
+#include "eth_phy.h"
+#include <eth_mac.h>
+#include "memory_map.h"
 
 static void setup_network(void);
 
@@ -374,7 +378,9 @@ main(void)
   register_udp_listener(USRP2_UDP_ERR0_PORT, handle_udp_err0_packet);
   register_udp_listener(USRP2_UDP_DSP1_PORT, handle_udp_dsp1_packet);
 #ifdef USRP2P
+#ifndef NO_FLASH
   register_udp_listener(USRP2_UDP_UPDATE_PORT, handle_udp_fw_update_packet);
+#endif
 #endif
 
   //3) set the routing mode to slave to set defaults

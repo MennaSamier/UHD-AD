@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <i2c.h>
 #include "usrp2/fw_common.h"
+#include "mdelay.h"
 
 #define VERBOSE 0
 
@@ -206,6 +207,13 @@ ethernet_init(void)
 
   ed_state.link_state = LS_UNKNOWN;
   ed_state.link_speed = S_UNKNOWN;
+
+  mdelay(1000);
+  output_regs->phy_ctrl = 1;
+  mdelay(1000);
+  output_regs->phy_ctrl = 0;
+  mdelay(2000);
+ 
 
   // initialize MAC registers
   //  eth_mac->tx_hwmark = 0x1e;
