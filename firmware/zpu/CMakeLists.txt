@@ -46,6 +46,10 @@ ADD_DEFINITIONS(--std=gnu99)
 ADD_DEFINITIONS(-Wall)
 ADD_DEFINITIONS(-Werror-implicit-function-declaration)
 ADD_DEFINITIONS(-ffunction-sections)
+ADD_DEFINITIONS(-DNO_FLASH)
+ADD_DEFINITIONS(-DNO_EEPROM)
+ADD_DEFINITIONS(-DNO_SPI_I2C)
+ADD_DEFINITIONS(-DMARVELL_PHY)
 
 MACRO(ADD_LINKER_FLAGS flags)
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${flags}")
@@ -118,5 +122,4 @@ ENDMACRO(GEN_OUTPUTS)
 ########################################################################
 # Add the subdirectories
 ########################################################################
-ADD_SUBDIRECTORY(usrp2)
 ADD_SUBDIRECTORY(usrp2p)
