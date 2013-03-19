@@ -33,12 +33,24 @@ module bootram
    output reg dwb_ack_o,
    input dwb_stb_i,
    input [3:0] dwb_sel_i);
-
+`ifdef ML605
+   wire [31:0] DOA0, DOA1, DOA2, DOA3;
+   wire [31:0] DOB0, DOB1, DOB2, DOB3;
+   wire        ENB0, ENB1, ENB2, ENB3;
+`else
    wire [31:0] DOA0, DOA1, DOA2, DOA3, DOA4, DOA5, DOA6, DOA7;
    wire [31:0] DOB0, DOB1, DOB2, DOB3, DOB4, DOB5, DOB6, DOB7;
    wire        ENB0, ENB1, ENB2, ENB3, ENB4, ENB5, ENB6, ENB7;
+`endif
    wire [3:0]  WEB;
 
+`ifdef ML605
+   reg [1:0]   delayed_if_bank;
+   always @(posedge clk)
+     delayed_if_bank <= if_adr[13:12];
+   assign if_data =  (delayed_if_bank[1] ? (delayed_if_bank[0] ? DOA3 : DOA2) : (delayed_if_bank[0] ? DOA1 : DOA0));
+   assign dwb_dat_o = (dwb_adr_i[13] ? (dwb_adr_i[12] ? DOB3 : DOB2) : (dwb_adr_i[12] ? DOB1 : DOB0));
+`else
    reg [2:0]   delayed_if_bank;
    always @(posedge clk)
      delayed_if_bank <= if_adr[13:11];
@@ -51,6 +63,7 @@ module bootram
    assign dwb_dat_o = dwb_adr_i[13] ?
                      (dwb_adr_i[12] ? (dwb_adr_i[11] ? DOB7 : DOB6) : (dwb_adr_i[11] ? DOB5 : DOB4))
                    : (dwb_adr_i[12] ? (dwb_adr_i[11] ? DOB3 : DOB2) : (dwb_adr_i[11] ? DOB1 : DOB0));
+`endif
 
    always @(posedge clk)
      if(reset)
@@ -58,6 +71,154 @@ module bootram
      else
        dwb_ack_o <= dwb_stb_i & ~dwb_ack_o;
    
+`ifdef ML605
+   assign ENB0 = dwb_stb_i & (dwb_adr_i[13:12] == 2'b00);
+   assign ENB1 = dwb_stb_i & (dwb_adr_i[13:12] == 2'b01);
+   assign ENB2 = dwb_stb_i & (dwb_adr_i[13:12] == 2'b10);
+   assign ENB3 = dwb_stb_i & (dwb_adr_i[13:12] == 2'b11);
+
+   assign WEB = {4{dwb_we_i}} & dwb_sel_i;
+
+//RAM0
+        BRAM_TDP_MACRO 
+          #(.BRAM_SIZE("36Kb"), // Target BRAM: "18Kb" or "36Kb"
+            .DEVICE("VIRTEX6"), // Target device: "VIRTEX5", "VIRTEX6", "SPARTAN6"
+            .DOA_REG(0), // Optional port A output register (0 or 1)
+            .DOB_REG(0), // Optional port B output register (0 or 1)
+            //.INIT_A(36’h000000000), // Initial values on port A output port
+            //.INIT_B(36’h000000000), // Initial values on port B output port
+            .INIT_FILE ("NONE"),
+            .READ_WIDTH_A (36), // Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+            .READ_WIDTH_B (36), // Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+            .SIM_COLLISION_CHECK ("ALL"), // Collision check enable "ALL", "WARNING_ONLY", "GENERATE_X_ONLY" or "NONE"
+            //.SRVAL_A(36’h000000000), // Set/Reset value for port A output
+            //.SRVAL_B(36’h000000000), // Set/Reset value for port B output
+            .WRITE_MODE_A("WRITE_FIRST"), // "WRITE_FIRST", "READ_FIRST", or "NO_CHANGE"
+            .WRITE_MODE_B("WRITE_FIRST"), // "WRITE_FIRST", "READ_FIRST", or "NO_CHANGE"
+            .WRITE_WIDTH_A(36), // Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+            .WRITE_WIDTH_B(36)) 
+        RAM0 (.DOA(DOA0), // Output port-A data, width defined by READ_WIDTH_A parameter
+            .DOB(DOB0), // Output port-B data, width defined by READ_WIDTH_B parameter
+            .ADDRA(if_adr[11:2]), // Input port-A address, width defined by Port A depth
+            .ADDRB(dwb_adr_i[11:2]), // Input port-B address, width defined by Port B depth
+            .CLKA(clk), // 1-bit input port-A clock
+            .CLKB(clk), // 1-bit input port-B clock
+            .DIA(36'hfffffffff), // Input port-A data, width defined by WRITE_WIDTH_A parameter
+            .DIB({4'hf,dwb_dat_i}), // Input port-B data, width defined by WRITE_WIDTH_B parameter
+            .ENA(1'b1), // 1-bit input port-A enable
+            .ENB(ENB0), // 1-bit input port-B enable
+            .REGCEA(1'b0), // 1-bit input port-A output register enable
+            .REGCEB(1'b0),//1-bit input port-B output register enable
+            .RSTA(1'b0),    //1-bit input port-A reset
+            .RSTB(1'b0),    //1-bit input port-B reset
+            .WEA(1'b0),      //Input port-A write enable, width defined by Port A depth
+            .WEB(WEB)); // End of BRAM_TDP_MACRO_inst instantiation
+
+//RAM1
+        BRAM_TDP_MACRO 
+          #(.BRAM_SIZE("36Kb"), // Target BRAM: "18Kb" or "36Kb"
+            .DEVICE("VIRTEX6"), // Target device: "VIRTEX5", "VIRTEX6", "SPARTAN6"
+            .DOA_REG(0), // Optional port A output register (0 or 1)
+            .DOB_REG(0), // Optional port B output register (0 or 1)
+            //.INIT_A(36’h000000000), // Initial values on port A output port
+            //.INIT_B(36’h000000000), // Initial values on port B output port
+            .INIT_FILE ("NONE"),
+            .READ_WIDTH_A (36), // Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+            .READ_WIDTH_B (36), // Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+            .SIM_COLLISION_CHECK ("ALL"), // Collision check enable "ALL", "WARNING_ONLY", "GENERATE_X_ONLY" or "NONE"
+            //.SRVAL_A(36’h000000000), // Set/Reset value for port A output
+            //.SRVAL_B(36’h000000000), // Set/Reset value for port B output
+            .WRITE_MODE_A("WRITE_FIRST"), // "WRITE_FIRST", "READ_FIRST", or "NO_CHANGE"
+            .WRITE_MODE_B("WRITE_FIRST"), // "WRITE_FIRST", "READ_FIRST", or "NO_CHANGE"
+            .WRITE_WIDTH_A(36), // Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+            .WRITE_WIDTH_B(36)) 
+        RAM1 (.DOA(DOA1), // Output port-A data, width defined by READ_WIDTH_A parameter
+            .DOB(DOB1), // Output port-B data, width defined by READ_WIDTH_B parameter
+            .ADDRA(if_adr[11:2]), // Input port-A address, width defined by Port A depth
+            .ADDRB(dwb_adr_i[11:2]), // Input port-B address, width defined by Port B depth
+            .CLKA(clk), // 1-bit input port-A clock
+            .CLKB(clk), // 1-bit input port-B clock
+            .DIA(36'hfffffffff), // Input port-A data, width defined by WRITE_WIDTH_A parameter
+            .DIB({4'hf,dwb_dat_i}), // Input port-B data, width defined by WRITE_WIDTH_B parameter
+            .ENA(1'b1), // 1-bit input port-A enable
+            .ENB(ENB1), // 1-bit input port-B enable
+            .REGCEA(1'b0), // 1-bit input port-A output register enable
+            .REGCEB(1'b0),//1-bit input port-B output register enable
+            .RSTA(1'b0),    //1-bit input port-A reset
+            .RSTB(1'b0),    //1-bit input port-B reset
+            .WEA(1'b0),      //Input port-A write enable, width defined by Port A depth
+            .WEB(WEB)); // End of BRAM_TDP_MACRO_inst instantiation
+
+//RAM2
+        BRAM_TDP_MACRO
+          #(.BRAM_SIZE("36Kb"), // Target BRAM: "18Kb" or "36Kb"
+            .DEVICE("VIRTEX6"), // Target device: "VIRTEX5", "VIRTEX6", "SPARTAN6"
+            .DOA_REG(0), // Optional port A output register (0 or 1)
+            .DOB_REG(0), // Optional port B output register (0 or 1)
+            //.INIT_A(36’h000000000), // Initial values on port A output port
+            //.INIT_B(36’h000000000), // Initial values on port B output port
+            .INIT_FILE ("NONE"),
+            .READ_WIDTH_A (36), // Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+            .READ_WIDTH_B (36), // Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+            .SIM_COLLISION_CHECK ("ALL"), // Collision check enable "ALL", "WARNING_ONLY", "GENERATE_X_ONLY" or "NONE"
+            //.SRVAL_A(36’h000000000), // Set/Reset value for port A output
+            //.SRVAL_B(36’h000000000), // Set/Reset value for port B output
+            .WRITE_MODE_A("WRITE_FIRST"), // "WRITE_FIRST", "READ_FIRST", or "NO_CHANGE"
+            .WRITE_MODE_B("WRITE_FIRST"), // "WRITE_FIRST", "READ_FIRST", or "NO_CHANGE"
+            .WRITE_WIDTH_A(36), // Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+            .WRITE_WIDTH_B(36)) 
+        RAM2 (.DOA(DOA2), // Output port-A data, width defined by READ_WIDTH_A parameter
+            .DOB(DOB2), // Output port-B data, width defined by READ_WIDTH_B parameter
+            .ADDRA(if_adr[11:2]), // Input port-A address, width defined by Port A depth
+            .ADDRB(dwb_adr_i[11:2]), // Input port-B address, width defined by Port B depth
+            .CLKA(clk), // 1-bit input port-A clock
+            .CLKB(clk), // 1-bit input port-B clock
+            .DIA(36'hfffffffff), // Input port-A data, width defined by WRITE_WIDTH_A parameter
+            .DIB({4'hf,dwb_dat_i}), // Input port-B data, width defined by WRITE_WIDTH_B parameter
+            .ENA(1'b1), // 1-bit input port-A enable
+            .ENB(ENB2), // 1-bit input port-B enable
+            .REGCEA(1'b0), // 1-bit input port-A output register enable
+            .REGCEB(1'b0),//1-bit input port-B output register enable
+            .RSTA(1'b0),    //1-bit input port-A reset
+            .RSTB(1'b0),    //1-bit input port-B reset
+            .WEA(1'b0),      //Input port-A write enable, width defined by Port A depth
+            .WEB(WEB)); // End of BRAM_TDP_MACRO_inst instantiation
+
+//RAM3
+        BRAM_TDP_MACRO
+          #(.BRAM_SIZE("36Kb"), // Target BRAM: "18Kb" or "36Kb"
+            .DEVICE("VIRTEX6"), // Target device: "VIRTEX5", "VIRTEX6", "SPARTAN6"
+            .DOA_REG(0), // Optional port A output register (0 or 1)
+            .DOB_REG(0), // Optional port B output register (0 or 1)
+            //.INIT_A(36’h000000000), // Initial values on port A output port
+            //.INIT_B(36’h000000000), // Initial values on port B output port
+            .INIT_FILE ("NONE"),
+            .READ_WIDTH_A (36), // Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+            .READ_WIDTH_B (36), // Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+            .SIM_COLLISION_CHECK ("ALL"), // Collision check enable "ALL", "WARNING_ONLY", "GENERATE_X_ONLY" or "NONE"
+            //.SRVAL_A(36’h000000000), // Set/Reset value for port A output
+            //.SRVAL_B(36’h000000000), // Set/Reset value for port B output
+            .WRITE_MODE_A("WRITE_FIRST"), // "WRITE_FIRST", "READ_FIRST", or "NO_CHANGE"
+            .WRITE_MODE_B("WRITE_FIRST"), // "WRITE_FIRST", "READ_FIRST", or "NO_CHANGE"
+            .WRITE_WIDTH_A(36), // Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+            .WRITE_WIDTH_B(36)) 
+         RAM3 (.DOA(DOA3), // Output port-A data, width defined by READ_WIDTH_A parameter
+            .DOB(DOB3), // Output port-B data, width defined by READ_WIDTH_B parameter
+            .ADDRA(if_adr[11:2]), // Input port-A address, width defined by Port A depth
+            .ADDRB(dwb_adr_i[11:2]), // Input port-B address, width defined by Port B depth
+            .CLKA(clk), // 1-bit input port-A clock
+            .CLKB(clk), // 1-bit input port-B clock
+            .DIA(36'hfffffffff), // Input port-A data, width defined by WRITE_WIDTH_A parameter
+            .DIB({4'hf,dwb_dat_i}), // Input port-B data, width defined by WRITE_WIDTH_B parameter
+            .ENA(1'b1), // 1-bit input port-A enable
+            .ENB(ENB3), // 1-bit input port-B enable
+            .REGCEA(1'b0), // 1-bit input port-A output register enable
+            .REGCEB(1'b0),//1-bit input port-B output register enable
+            .RSTA(1'b0),    //1-bit input port-A reset
+            .RSTB(1'b0),    //1-bit input port-B reset
+            .WEA(1'b0),      //Input port-A write enable, width defined by Port A depth
+            .WEB(WEB)); // End of BRAM_TDP_MACRO_inst instantiation
+`else
    assign ENB0 = dwb_stb_i & (dwb_adr_i[13:11] == 3'b000);
    assign ENB1 = dwb_stb_i & (dwb_adr_i[13:11] == 3'b001);
    assign ENB2 = dwb_stb_i & (dwb_adr_i[13:11] == 3'b010);
@@ -309,4 +470,5 @@ module bootram
       .WEB(WEB)                // Port B 4-bit Write Enable Input
       );   // End of RAMB16BWE_S36_S36_inst instantiation
 
+`endif
 endmodule // bootram

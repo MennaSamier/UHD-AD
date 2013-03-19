@@ -23,6 +23,53 @@
 module u2plus
   (
    input CLK_FPGA_P, input CLK_FPGA_N,  // Diff
+`ifdef ML605
+   output CLK_SMA_P, output CLK_SMA_N,
+   input CLK_FMC_P, input CLK_FMC_N,
+   output CLK_OUT_P, output CLK_OUT_N,
+   input CLK_IN_SEL,
+   
+   input  PLL_CLK_RESET,
+   output PLL_CLK_LOCKED,
+   input  PLL_DSP_RESET,
+   output PLL_DSP_LOCKED,
+   
+   // ADC
+   input ADC_DCO_p,input ADC_DCO_n,
+   input ADC_OR_p,input ADC_OR_n,
+   input ADC_11_p,input ADC_11_n,
+   input ADC_10_p,input ADC_10_n,
+   input ADC_9_p, input ADC_9_n,
+   input ADC_8_p, input ADC_8_n,
+   input ADC_7_p, input ADC_7_n,
+   input ADC_6_p, input ADC_6_n,
+   input ADC_5_p, input ADC_5_n,
+   input ADC_4_p, input ADC_4_n,
+   input ADC_3_p, input ADC_3_n,
+   input ADC_2_p, input ADC_2_n,
+   input ADC_1_p, input ADC_1_n,
+   input ADC_0_p, input ADC_0_n,
+   
+   // DAC
+   output DAC_DCI_p,output DAC_DCI_n,
+   output DAC_FRAME_p,output DAC_FRAME_n,
+   output DAC_15_p,output DAC_15_n,
+   output DAC_14_p,output DAC_14_n,
+   output DAC_13_p,output DAC_13_n,
+   output DAC_12_p,output DAC_12_n,
+   output DAC_11_p,output DAC_11_n,
+   output DAC_10_p,output DAC_10_n,
+   output DAC_9_p, output DAC_9_n,
+   output DAC_8_p, output DAC_8_n,
+   output DAC_7_p, output DAC_7_n,
+   output DAC_6_p, output DAC_6_n,
+   output DAC_5_p, output DAC_5_n,
+   output DAC_4_p, output DAC_4_n,
+   output DAC_3_p, output DAC_3_n,
+   output DAC_2_p, output DAC_2_n,
+   output DAC_1_p, output DAC_1_n,
+   output DAC_0_p, output DAC_0_n,
+`else
    
    // ADC
    input ADC_clkout_p, input ADC_clkout_n,
@@ -46,7 +93,15 @@ module u2plus
    output reg [15:0] DACB,
    input DAC_LOCK,     // unused for now
    
+`endif // !`ifdef ML605
+
    // DB IO Pins
+`ifdef ML605
+   output [5:1] leds,  // LED4 is shared w/INIT_B
+   input FPGA_RESET,
+   output [2:0] debug,
+   output TXD, input RXD, // UARTs
+`else
    inout [15:0] io_tx,
    inout [15:0] io_rx,
 
@@ -63,6 +118,7 @@ module u2plus
    output [1:0] clk_sel,
    input CLK_FUNC,        // FIXME is an input to control the 9510
    input clk_status,
+`endif // !`ifdef ML605
 
    inout SCL, inout SDA,   // I2C
 
@@ -70,6 +126,8 @@ module u2plus
    input PPS_IN, input PPS2_IN,
 
    // SPI
+`ifdef ML605
+`else
    output SEN_CLK, output SCLK_CLK, output MOSI_CLK, input MISO_CLK,
    output SEN_DAC, output SCLK_DAC, output MOSI_DAC, input MISO_DAC,
    output SEN_ADC, output SCLK_ADC, output MOSI_ADC,
@@ -79,9 +137,13 @@ module u2plus
    output SEN_RX_DB, output SCLK_RX_DB, output MOSI_RX_DB, input MISO_RX_DB,
    output SEN_RX_DAC, output SCLK_RX_DAC, output MOSI_RX_DAC,
    output SEN_RX_ADC, output SCLK_RX_ADC, output MOSI_RX_ADC, input MISO_RX_ADC,
+`endif // !`ifdef ML605
 
    // GigE PHY
+`ifdef ML605
+`else
    input CLK_TO_MAC,
+`endif
 
    output reg [7:0] GMII_TXD,
    output reg GMII_TX_EN,
@@ -99,6 +161,10 @@ module u2plus
    input PHY_INTn,   // open drain
    inout MDIO,
    output MDC,
+`ifdef ML605
+   output PHY_RESETn
+   );
+`else
    output PHY_RESETn,
    output ETH_LED,
    
@@ -143,14 +209,20 @@ module u2plus
    output flash_mosi,
    input flash_miso
    );
+`endif // !`ifdef ML605
 
+`ifndef ML605
    wire  CLK_TO_MAC_int, CLK_TO_MAC_int2;
    IBUFG phyclk (.O(CLK_TO_MAC_int), .I(CLK_TO_MAC));
    BUFG phyclk2 (.O(CLK_TO_MAC_int2), .I(CLK_TO_MAC_int));
+`else
+   wire clk_to_mac;
+`endif
       
    // FPGA-specific pins connections
    wire 	clk_fpga, dsp_clk, clk_div, dcm_out, wb_clk, clock_ready;
 
+`ifndef ML605
    IBUFGDS clk_fpga_pin (.O(clk_fpga),.I(CLK_FPGA_P),.IB(CLK_FPGA_N));
    defparam 	clk_fpga_pin.IOSTANDARD = "LVPECL_25";
    
@@ -169,6 +241,7 @@ module u2plus
    wire 	exp_user_out;
    OBUFDS exp_user_out_pin (.O(exp_user_out_p),.OB(exp_user_out_n),.I(exp_user_out));
    defparam 	exp_user_out_pin.IOSTANDARD  = "LVDS_25";
+`endif
 
    reg [5:0] 	clock_ready_d;
    always @(posedge clk_fpga)
@@ -177,6 +250,7 @@ module u2plus
 
    // ADC A is inverted on the schematic to facilitate a clean layout
    //  We account for that here by inverting it
+`ifndef ML605
 `ifdef LVDS
    wire [13:0] 	adc_a, adc_a_inv, adc_b;
    capture_ddrlvds #(.WIDTH(14)) capture_ddrlvds
@@ -199,7 +273,16 @@ module u2plus
 	adc_b <= adc_b_pre;
      end
 `endif // !`ifdef LVDS
+`else
+   wire [11:0]     adc_a;
+   capture_ad9434 #(.WIDTH(12)) capture_ad9434
+     (.clk(dsp_clk), .ssclk_p(ADC_DCO_p), .ssclk_n(ADC_DCO_n), 
+      .in_p({ ADC_11_p, ADC_10_p, ADC_9_p, ADC_8_p, ADC_7_p, ADC_6_p, ADC_5_p, ADC_4_p, ADC_3_p, ADC_2_p, ADC_1_p, ADC_0_p}),
+      .in_n({ ADC_11_n, ADC_10_n, ADC_9_n, ADC_8_n, ADC_7_n, ADC_6_n, ADC_5_n, ADC_4_n, ADC_3_n, ADC_2_n, ADC_1_n, ADC_0_n}),
+      .out(adc_a));
+`endif
    
+`ifndef ML605
    // Handle Clocks
    DCM DCM_INST (.CLKFB(dsp_clk), 
                  .CLKIN(clk_fpga), 
@@ -237,7 +320,52 @@ module u2plus
 
    BUFG dspclk_BUFG (.I(dcm_out), .O(dsp_clk));
    BUFG wbclk_BUFG (.I(clk_div), .O(wb_clk));
+`else
+wire dsp_clk_100M;
 
+   pll_clk pll_clk_instance
+   (// Clock in ports
+    .CLK_IN1_P(CLK_FPGA_P),      // IN
+    .CLK_IN1_N(CLK_FPGA_N),
+    .RESET(PLL_CLK_RESET),
+    // Clock out ports
+    .LOCKED(PLL_CLK_LOCKED),
+    .CLK_OUT1(wb_clk),     // OUT 50 MHz
+    .CLK_OUT2(clk_to_mac),     // OUT 125 MHz
+    .CLK_OUT3(dsp_clk_100M),     // OUT 100 MHz
+    .CLK_OUT4(),     // OUT 100 MHz, clk270_100
+    .CLK_OUT5(clk_fpga)     // OUT 100 MHz
+    );     
+
+wire clk_rx, clk_rx_180;
+   pll_rx pll_rx_instance
+   (// Clock in ports
+    .CLK_IN1(GMII_RX_CLK),      // IN
+    // Clock out ports
+    .CLK_OUT1(clk_rx),     // OUT
+    .CLK_OUT2(clk_rx_180));    // OUT
+
+wire clk_fmc;
+  IBUFGDS clk_fmc_buf
+   (.O  (clk_fmc),
+    .I  (CLK_FMC_P),
+    .IB (CLK_FMC_N));
+
+   pll_dsp pll_dsp_instance
+   (// Clock in ports
+    .CLK_IN1(dsp_clk_100M),  // IN 100MHz
+    .CLK_IN2(clk_fmc), // IN from FMC 122.88MHz
+    .CLK_IN_SEL(CLK_IN_SEL), // High select 1, low select 2
+    .RESET(PLL_DSP_RESET),
+    // Clock out ports
+    .LOCKED(PLL_DSP_LOCKED),
+    .CLK_OUT1(dsp_clk));    // OUT 122.88MHz
+
+   OBUFDS clk_out_pin (.O(CLK_OUT_P),.OB(CLK_OUT_N),.I(dsp_clk));
+   OBUFDS clk_sma_out_pin (.O(CLK_SMA_P),.OB(CLK_SMA_N),.I(dsp_clk));
+`endif
+
+`ifndef ML605
    // Create clock for external SRAM thats -90degree phase to DSPCLK (i.e) 2nS earlier at 100MHz.
    BUFG  clk270_100_buf_i1 (.I(clk270_100), 
 			    .O(clk270_100_buf));
@@ -249,6 +377,8 @@ module u2plus
 			.D1(1'b0),
 			.R(1'b0),
 			.S(1'b0));
+
+`endif
   
    // I2C -- Don't use external transistors for open drain, the FPGA implements this
    IOBUF scl_pin(.O(scl_pad_i), .IO(SCL), .I(scl_pad_o), .T(scl_pad_oen_o));
@@ -256,9 +386,14 @@ module u2plus
 
    // LEDs are active low outputs
    wire [5:0] leds_int;
+`ifndef ML605
    assign     {ETH_LED,leds} = {6'b011111 ^ leds_int};  // drive low to turn on leds
+`else
+   assign     {ETH_LED,leds} = {6'b000000 ^ leds_int};  // drive low to turn on leds
+`endif
    
    // SPI
+`ifndef ML605
    wire       miso, mosi, sclk;
 
    assign 	{SCLK_CLK,MOSI_CLK} 	   = ~SEN_CLK ? {sclk,mosi} : 2'B0;
@@ -275,6 +410,7 @@ module u2plus
 					     (~SEN_TX_DB & MISO_TX_DB) | (~SEN_TX_ADC & MISO_TX_ADC) |
 					     (~SEN_RX_DB & MISO_RX_DB) | (~SEN_RX_ADC & MISO_RX_ADC);
    
+`endif
    wire 	GMII_TX_EN_unreg, GMII_TX_ER_unreg;
    wire [7:0] 	GMII_TXD_unreg;
    wire 	GMII_GTX_CLK_int;
@@ -286,6 +422,7 @@ module u2plus
 	GMII_TXD <= GMII_TXD_unreg;
      end
 
+`ifndef ML605
    OFDDRRSE OFDDRRSE_gmii_inst 
      (.Q(GMII_GTX_CLK),      // Data output (connect directly to top-level port)
       .C0(GMII_GTX_CLK_int),    // 0 degree clock input
@@ -296,7 +433,130 @@ module u2plus
       .R(0),      // Synchronous reset input
       .S(0)       // Synchronous preset input
       );
+`else
+    ODDR #(
+        .DDR_CLK_EDGE("OPPOSITE_EDGE"), // "OPPOSITE_EDGE" or "SAME_EDGE"
+        .INIT(1'b0), // Initial value of Q: 1'b0 or 1'b1
+        .SRTYPE("SYNC") // Set/Reset type: "SYNC" or "ASYNC"
+    ) ODDR_gmii_inst (
+    .Q(GMII_GTX_CLK), // 1-bit DDR output
+    .C(GMII_GTX_CLK_int), // 1-bit clock input
+    .CE(1'b1), // 1-bit clock enable input
+    .D1(1'b0), // 1-bit data input (positive edge)
+    .D2(1'b1), // 1-bit data input (negative edge)
+    .R(1'b0), // 1-bit reset
+    .S(1'b0) // 1-bit set
+    );
+
+   wire [7:0] GMII_RXD_buf_n ,GMII_RXD_buf;
+   wire GMII_RX_DV_buf, GMII_RX_DV_buf_n, GMII_RX_ER_buf, GMII_RX_ER_buf_n;
+
+    IDDR erx_dv_ifd
+    (
+      .Q1( GMII_RX_DV_buf), // 1-bit output captured with C0 clock
+      .Q2 ( GMII_RX_DV_buf_n), // 1-bit output captured with C1 clock
+      .C ( clk_rx), // 1-bit clock input
+      .CE ( 1),  // 1-bit clock enable input
+      .D ( GMII_RX_DV),   // 1-bit data input
+      .R ( 0),      // Synchronous reset input
+      .S ( 0)      // Synchronous preset input
+      );
+   IDDR erx_er_ifd
+    (
+      .Q1 ( GMII_RX_ER_buf), // 1-bit output captured with C0 clock
+      .Q2 ( GMII_RX_ER_buf_n), // 1-bit output captured with C1 clock
+      .C ( clk_rx), // 1-bit clock input
+      .CE ( 1),  // 1-bit clock enable input
+      .D ( GMII_RX_ER),   // 1-bit data input
+      .R ( 0),      // Synchronous reset input
+      .S ( 0)      // Synchronous preset input
+    );
+
+   IDDR erxd_0_ifd
+    (
+      .Q1 ( GMII_RXD_buf[0]), // 1-bit output captured with C0 clock
+      .Q2 ( GMII_RXD_buf_n[0]), // 1-bit output captured with C1 clock
+      .C ( clk_rx), // 1-bit clock input
+      .CE ( 1),  // 1-bit clock enable input
+      .D ( GMII_RXD[0]),   // 1-bit data input
+      .R ( 0),      // Synchronous reset input
+      .S ( 0)      // Synchronous preset input
+      );
+   IDDR erxd_1_ifd
+    (
+      .Q1 ( GMII_RXD_buf[1]), // 1-bit output captured with C0 clock
+      .Q2 ( GMII_RXD_buf_n[1]), // 1-bit output captured with C1 clock
+      .C ( clk_rx), // 1-bit clock input
+      .CE ( 1),  // 1-bit clock enable input
+      .D ( GMII_RXD[1]),   // 1-bit data input
+      .R ( 0),      // Synchronous reset input
+      .S ( 0)      // Synchronous preset input
+      );
+
+   IDDR erxd_2_ifd
+    (
+      .Q1 ( GMII_RXD_buf[2]), // 1-bit output captured with C0 clock
+      .Q2 ( GMII_RXD_buf_n[2]), // 1-bit output captured with C1 clock
+      .C ( clk_rx), // 1-bit clock input
+      .CE ( 1),  // 1-bit clock enable input
+      .D ( GMII_RXD[2]),   // 1-bit data input
+      .R ( 0),      // Synchronous reset input
+      .S ( 0)      // Synchronous preset input
+      );
+   IDDR erxd_3_ifd
+   (
+      .Q1 ( GMII_RXD_buf[3]), // 1-bit output captured with C0 clock
+      .Q2 ( GMII_RXD_buf_n[3]), // 1-bit output captured with C1 clock
+      .C ( clk_rx), // 1-bit clock input
+      .CE ( 1),  // 1-bit clock enable input
+      .D ( GMII_RXD[3]),   // 1-bit data input
+      .R ( 0),      // Synchronous reset input
+      .S ( 0)      // Synchronous preset input
+      );
+   IDDR erxd_4_ifd
+    (
+      .Q1 ( GMII_RXD_buf[4]), // 1-bit output captured with C0 clock
+      .Q2 ( GMII_RXD_buf_n[4]), // 1-bit output captured with C1 clock
+      .C ( clk_rx), // 1-bit clock input
+      .CE ( 1),  // 1-bit clock enable input
+      .D ( GMII_RXD[4]),   // 1-bit data input
+      .R ( 0),      // Synchronous reset input
+      .S ( 0)      // Synchronous preset input
+      );
+   IDDR erxd_5_ifd
+   (
+      .Q1 ( GMII_RXD_buf[5]), // 1-bit output captured with C0 clock
+      .Q2 ( GMII_RXD_buf_n[5]), // 1-bit output captured with C1 clock
+      .C ( clk_rx), // 1-bit clock input
+      .CE ( 1),  // 1-bit clock enable input
+      .D ( GMII_RXD[5]),   // 1-bit data input
+      .R ( 0),      // Synchronous reset input
+      .S ( 0)      // Synchronous preset input
+      );
+   IDDR erxd_6_ifd
+    (
+      .Q1 ( GMII_RXD_buf[6]), // 1-bit output captured with C0 clock
+      .Q2 ( GMII_RXD_buf_n[6]), // 1-bit output captured with C1 clock
+      .C ( clk_rx), // 1-bit clock input
+      .CE ( 1),  // 1-bit clock enable input
+      .D ( GMII_RXD[6]),   // 1-bit data input
+      .R ( 0),      // Synchronous reset input
+      .S ( 0)      // Synchronous preset input
+      );
+   IDDR erxd_7_ifd
+    (
+      .Q1 ( GMII_RXD_buf[7]), // 1-bit output captured with C0 clock
+      .Q2 ( GMII_RXD_buf_n[7]), // 1-bit output captured with C1 clock
+      .C ( clk_rx), // 1-bit clock input
+      .CE ( 1),  // 1-bit clock enable input
+      .D ( GMII_RXD[7]),   // 1-bit data input
+      .R ( 0),      // Synchronous reset input
+      .S ( 0)      // Synchronous preset input
+      );
+
+`endif
    
+`ifndef ML605
    wire ser_tklsb_unreg, ser_tkmsb_unreg;
    wire [15:0] ser_t_unreg;
    wire        ser_tx_clk_int;
@@ -319,6 +579,7 @@ module u2plus
 	ser_rklsb_int <= ser_rklsb;
 	ser_rkmsb_int <= ser_rkmsb;
      end
+`endif
    
    /*
    OFDDRRSE OFDDRRSE_serdes_inst 
@@ -334,6 +595,7 @@ module u2plus
    */
 
 
+`ifndef ML605
    //
    // Instantiate IO for Bidirectional bus to SRAM
    //
@@ -360,28 +622,52 @@ module u2plus
 		      );
 	end // block: gen_RAM_D_IO
    endgenerate
+`endif
 
    
    
    wire [15:0] dac_a_int, dac_b_int;
    // DAC A and B are swapped in schematic to facilitate clean layout
    // DAC A is also inverted in schematic to facilitate clean layout
+`ifndef ML605
    always @(negedge dsp_clk) DACA <= ~dac_b_int;
    always @(negedge dsp_clk) DACB <= dac_a_int;
+`endif
 
    wire 	pps;
    assign pps = PPS_IN ^ PPS2_IN;
+
+`ifdef ML605
+    transmit_ad9122 #(.WIDTH(16)) transmit_inst (
+            .clk(dsp_clk),
+            .in_a(dac_a_int),
+            .in_b(dac_b_int),
+            .dac_dci_out_p(DAC_DCI_p),
+            .dac_dci_out_n(DAC_DCI_n),
+            .dac_frame_out_p(DAC_FRAME_p),
+            .dac_frame_out_n(DAC_FRAME_n),
+            .out_p({DAC_15_p,DAC_14_p,DAC_13_p,DAC_12_p,DAC_11_p,DAC_10_p,DAC_9_p,DAC_8_p,DAC_7_p,DAC_6_p,DAC_5_p,DAC_4_p,DAC_3_p,DAC_2_p,DAC_1_p,DAC_0_p}),
+            .out_n({DAC_15_n,DAC_14_n,DAC_13_n,DAC_12_n,DAC_11_n,DAC_10_n,DAC_9_n,DAC_8_n,DAC_7_n,DAC_6_n,DAC_5_n,DAC_4_n,DAC_3_n,DAC_2_n,DAC_1_n,DAC_0_n}));
+
+   wire   PHY_RESETn_internal;
+`endif
    
    u2plus_core u2p_c(.dsp_clk           (dsp_clk),
 		     .wb_clk            (wb_clk),
 		     .clock_ready       (clock_ready),
+`ifndef ML605
 		     .clk_to_mac	(CLK_TO_MAC_int2),
+`else
+                     .clk_to_mac        (clk_to_mac),
+`endif
 		     .pps_in		(pps),
 		     .leds		(leds_int),
+`ifndef ML605
 		     .debug		(debug[31:0]),
 		     .debug_clk		(debug_clk[1:0]),
 		     .exp_time_in	(exp_time_in),
 		     .exp_time_out	(exp_time_out),
+`endif
 		     .GMII_COL		(GMII_COL),
 		     .GMII_CRS		(GMII_CRS),
 		     .GMII_TXD		(GMII_TXD_unreg[7:0]),
@@ -389,13 +675,21 @@ module u2plus
 		     .GMII_TX_ER	(GMII_TX_ER_unreg),
 		     .GMII_GTX_CLK	(GMII_GTX_CLK_int),
 		     .GMII_TX_CLK	(GMII_TX_CLK),
+`ifndef ML605
 		     .GMII_RXD		(GMII_RXD[7:0]),
 		     .GMII_RX_CLK	(GMII_RX_CLK),
 		     .GMII_RX_DV	(GMII_RX_DV),
 		     .GMII_RX_ER	(GMII_RX_ER),
+`else
+                     .GMII_RXD          (GMII_RXD_buf[7:0]),
+                     .GMII_RX_CLK       (clk_rx),
+                     .GMII_RX_DV        (GMII_RX_DV_buf),
+                     .GMII_RX_ER        (GMII_RX_ER_buf),
+`endif
 		     .MDIO		(MDIO),
 		     .MDC		(MDC),
 		     .PHY_INTn		(PHY_INTn),
+`ifndef ML605
 		     .PHY_RESETn	(PHY_RESETn),
 		     .ser_enable	(ser_enable),
 		     .ser_prbsen	(ser_prbsen),
@@ -415,6 +709,15 @@ module u2plus
 		     .adc_oe_a		(),
 		     .adc_b		(adc_b[13:0]),
 		     .adc_ovf_b		(1'b0),
+`else
+                     .PHY_RESETn        (PHY_RESETn_internal),
+                     .adc_a        ({adc_a[11:0],2'b0}),
+                     .adc_ovf_a        (1'b0),
+                     .adc_on_a        (),
+                     .adc_oe_a        (),
+                     .adc_b        ({adc_a[11:0],2'b0}),
+                     .adc_ovf_b        (1'b0),
+`endif
 		     .adc_on_b		(),
 		     .adc_oe_b		(),
 		     .dac_a		(dac_a_int[15:0]),
@@ -425,6 +728,7 @@ module u2plus
 		     .sda_pad_i		(sda_pad_i),
 		     .sda_pad_o		(sda_pad_o),
 		     .sda_pad_oen_o	(sda_pad_oen_o),
+`ifndef ML605
 		     .clk_en		(clk_en[1:0]),
 		     .clk_sel		(clk_sel[1:0]),
 		     .clk_func		(clk_func),
@@ -463,11 +767,26 @@ module u2plus
 		     .spiflash_miso     (flash_miso),
 		     .spiflash_mosi     (flash_mosi)
 		     );
+`else
+                     .uart_tx_o         (TXD),
+                     .uart_rx_i         ({3'b111,RXD}),
+                     .uart_baud_o       (),
+                     .sim_mode          (1'b0),
+                     .clock_divider     (2),
+                     .button            (1'b0)
+                     );
+`endif
 
+`ifndef ML605
    // Drive low so that RAM does not sleep.
    assign RAM_ZZ = 0;
    // Byte Writes are qualified by the global write enable
    // Always do 36bit operations to extram.
    assign RAM_BWn = 4'b0000;
-   
+`else
+   assign debug[0] = PHY_RESETn;
+   assign debug[1] = PHY_INTn;
+   assign debug[2] = FPGA_RESET;
+   assign PHY_RESETn = (~FPGA_RESET)&(PHY_RESETn_internal);
+`endif   
 endmodule // u2plus

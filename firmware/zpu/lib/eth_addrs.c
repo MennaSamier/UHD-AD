@@ -61,7 +61,7 @@ static void eth_addrs_init(void){
     eth_addrs_initialized = true;
 
     #define eth_addrs_init_x(addr, x){ \
-        const bool ok = true; \
+        const bool ok = false; \
         if (!ok || unprogrammed(&current_eth_addrs.x, sizeof(current_eth_addrs.x))){ \
             memcpy(&current_eth_addrs.x, &default_eth_addrs.x, sizeof(current_eth_addrs.x)); \
         } \
