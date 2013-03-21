@@ -415,7 +415,7 @@ NET "PHY_RESETn"   LOC = "AH13"  ;
 #NET "unnamed_net20"  LOC = "V20"  ;    # SUSPEND
 
 NET "clk_fmc_p" TNM_NET = "clk_fmc_p";
-TIMESPEC "TS_clk_fmc_p" = PERIOD "clk_fmc_p" 8.138 ns HIGH 50 %;
+TIMESPEC "TS_clk_fmc_p" = PERIOD "clk_fmc_p" 8 ns HIGH 50 %;
 
 NET "clk_to_mac" TNM_NET = "clk_to_mac";
 TIMESPEC "TS_clk_to_mac" = PERIOD "clk_to_mac" 8 ns HIGH 50 %;
@@ -426,25 +426,28 @@ TIMESPEC "TS_clk_fpga_p" = PERIOD "clk_fpga_p" 5 ns HIGH 50 %;
 NET "GMII_RX_CLK" TNM_NET = "GMII_RX_CLK";
 TIMESPEC "TS_GMII_RX_CLK" = PERIOD "GMII_RX_CLK" 8 ns HIGH 50 %;
 
+
 NET "wb_clk" TNM_NET = "wb_clk";
 #TIMESPEC "wb_clk" = PERIOD "wb_clk" 10 ns HIGH 50 %;
 
 NET "dsp_clk" TNM_NET = "dsp_clk";
 #TIMESPEC "dsp_clk" = PERIOD "dsp_clk" 8 ns HIGH 50 %;
 
+TIMESPEC "TS_clk_div_to_dsp_clk" = FROM "wb_clk" TO "dsp_clk" 8 ns;
+
 NET "clk_rx" TNM_NET = "rx_clk";
 
-TIMESPEC TS_TIG_from_wbclk_to_dspclk = FROM "wb_clk" TO "dsp_clk" TIG;
-TIMESPEC TS_TIG_from_dspclk_to_wbclk = FROM "dsp_clk" TO "wb_clk" TIG;
+#TIMESPEC TS_TIG_from_wbclk_to_dspclk = FROM "wb_clk" TO "dsp_clk" TIG;
+#TIMESPEC TS_TIG_from_dspclk_to_wbclk = FROM "dsp_clk" TO "wb_clk" TIG;
 
-TIMESPEC TS_TIG_from_gmiirxclk_to_dspclk = FROM "rx_clk" TO "dsp_clk" TIG;
-TIMESPEC TS_TIG_from_dspclk_to_gmiirxclk = FROM "dsp_clk" TO "rx_clk" TIG;
+#TIMESPEC TS_TIG_from_gmiirxclk_to_dspclk = FROM "rx_clk" TO "dsp_clk" TIG;
+#TIMESPEC TS_TIG_from_dspclk_to_gmiirxclk = FROM "dsp_clk" TO "rx_clk" TIG;
 
-TIMESPEC TS_TIG_from_clktomac_to_dspclk = FROM "clk_to_mac" TO "dsp_clk" TIG;
-TIMESPEC TS_TIG_from_dspclk_to_clktomac = FROM "dsp_clk" TO "clk_to_mac" TIG;
+#TIMESPEC TS_TIG_from_clktomac_to_dspclk = FROM "clk_to_mac" TO "dsp_clk" TIG;
+#TIMESPEC TS_TIG_from_dspclk_to_clktomac = FROM "dsp_clk" TO "clk_to_mac" TIG;
 
-TIMESPEC TS_TIG_from_clktomac_to_wbclk = FROM "clk_to_mac" TO "wb_clk" TIG;
-TIMESPEC TS_TIG_from_wbclk_to_clktomac = FROM "wb_clk" TO "clk_to_mac" TIG;
+#TIMESPEC TS_TIG_from_clktomac_to_wbclk = FROM "clk_to_mac" TO "wb_clk" TIG;
+#TIMESPEC TS_TIG_from_wbclk_to_clktomac = FROM "wb_clk" TO "clk_to_mac" TIG;
 
 
 NET "CLK_FMC_P" CLOCK_DEDICATED_ROUTE = FALSE;

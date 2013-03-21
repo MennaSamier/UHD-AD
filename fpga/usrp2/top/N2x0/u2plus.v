@@ -330,7 +330,7 @@ wire dsp_clk_100M;
     .RESET(PLL_CLK_RESET),
     // Clock out ports
     .LOCKED(PLL_CLK_LOCKED),
-    .CLK_OUT1(wb_clk),     // OUT 50 MHz
+    .CLK_OUT1(),     // OUT 50 MHz
     .CLK_OUT2(clk_to_mac),     // OUT 125 MHz
     .CLK_OUT3(dsp_clk_100M),     // OUT 100 MHz
     .CLK_OUT4(),     // OUT 100 MHz, clk270_100
@@ -359,7 +359,8 @@ wire clk_fmc;
     .RESET(PLL_DSP_RESET),
     // Clock out ports
     .LOCKED(PLL_DSP_LOCKED),
-    .CLK_OUT1(dsp_clk));    // OUT 122.88MHz
+    .CLK_OUT1(dsp_clk),    // OUT 122.88MHz
+    .CLK_OUT2(wb_clk));    // OUT 61.44MHz
 
    OBUFDS clk_out_pin (.O(CLK_OUT_P),.OB(CLK_OUT_N),.I(dsp_clk));
    OBUFDS clk_sma_out_pin (.O(CLK_SMA_P),.OB(CLK_SMA_N),.I(dsp_clk));

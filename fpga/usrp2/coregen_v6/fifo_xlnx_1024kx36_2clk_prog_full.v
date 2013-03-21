@@ -25,8 +25,8 @@
 *     (c) Copyright 1995-2013 Xilinx, Inc.                                     *
 *     All rights reserved.                                                     *
 *******************************************************************************/
-// You must compile the wrapper file fifo_xlnx_8kx36_2clk_prog_full.v when simulating
-// the core, fifo_xlnx_8kx36_2clk_prog_full. When compiling the wrapper file, be sure to
+// You must compile the wrapper file fifo_xlnx_1024kx36_2clk_prog_full.v when simulating
+// the core, fifo_xlnx_1024kx36_2clk_prog_full. When compiling the wrapper file, be sure to
 // reference the XilinxCoreLib Verilog simulation library. For detailed
 // instructions, please refer to the "CORE Generator Help".
 
@@ -36,7 +36,7 @@
 
 `timescale 1ns/1ps
 
-module fifo_xlnx_8kx36_2clk_prog_full(
+module fifo_xlnx_1024kx36_2clk_prog_full(
   rst,
   wr_clk,
   rd_clk,
@@ -90,7 +90,7 @@ output prog_full;
     .C_AXIS_TYPE(0),
     .C_COMMON_CLOCK(0),
     .C_COUNT_TYPE(0),
-    .C_DATA_COUNT_WIDTH(13),
+    .C_DATA_COUNT_WIDTH(20),
     .C_DEFAULT_VALUE("BlankString"),
     .C_DIN_WIDTH(36),
     .C_DIN_WIDTH_AXIS(1),
@@ -189,14 +189,14 @@ output prog_full;
     .C_PROG_EMPTY_TYPE_WACH(5),
     .C_PROG_EMPTY_TYPE_WDCH(5),
     .C_PROG_EMPTY_TYPE_WRCH(5),
-    .C_PROG_FULL_THRESH_ASSERT_VAL(8191),
+    .C_PROG_FULL_THRESH_ASSERT_VAL(1008575),
     .C_PROG_FULL_THRESH_ASSERT_VAL_AXIS(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_RACH(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_RDCH(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_WACH(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_WDCH(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_WRCH(1023),
-    .C_PROG_FULL_THRESH_NEGATE_VAL(8190),
+    .C_PROG_FULL_THRESH_NEGATE_VAL(1008574),
     .C_PROG_FULL_TYPE(1),
     .C_PROG_FULL_TYPE_AXIS(5),
     .C_PROG_FULL_TYPE_RACH(5),
@@ -205,10 +205,10 @@ output prog_full;
     .C_PROG_FULL_TYPE_WDCH(5),
     .C_PROG_FULL_TYPE_WRCH(5),
     .C_RACH_TYPE(0),
-    .C_RD_DATA_COUNT_WIDTH(13),
-    .C_RD_DEPTH(8192),
+    .C_RD_DATA_COUNT_WIDTH(20),
+    .C_RD_DEPTH(1048576),
     .C_RD_FREQ(1),
-    .C_RD_PNTR_WIDTH(13),
+    .C_RD_PNTR_WIDTH(20),
     .C_RDCH_TYPE(0),
     .C_REG_SLICE_MODE_AXIS(0),
     .C_REG_SLICE_MODE_RACH(0),
@@ -236,8 +236,8 @@ output prog_full;
     .C_WACH_TYPE(0),
     .C_WDCH_TYPE(0),
     .C_WR_ACK_LOW(0),
-    .C_WR_DATA_COUNT_WIDTH(13),
-    .C_WR_DEPTH(8192),
+    .C_WR_DATA_COUNT_WIDTH(20),
+    .C_WR_DEPTH(1048576),
     .C_WR_DEPTH_AXIS(1024),
     .C_WR_DEPTH_RACH(16),
     .C_WR_DEPTH_RDCH(1024),
@@ -245,7 +245,7 @@ output prog_full;
     .C_WR_DEPTH_WDCH(1024),
     .C_WR_DEPTH_WRCH(16),
     .C_WR_FREQ(1),
-    .C_WR_PNTR_WIDTH(13),
+    .C_WR_PNTR_WIDTH(20),
     .C_WR_PNTR_WIDTH_AXIS(10),
     .C_WR_PNTR_WIDTH_RACH(4),
     .C_WR_PNTR_WIDTH_RDCH(10),
