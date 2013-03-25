@@ -1,0 +1,3 @@
+#!/bin/bash
+
+impact -batch flash_down.cmd

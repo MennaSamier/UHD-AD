@@ -137,7 +137,7 @@ module ext_fifo
       end // block: fifo_g1
       else if (EXT_WIDTH == 36 && INT_WIDTH == 36) begin: fifo_g1
 	 // FIFO buffers data from UDP engine into external FIFO clock domain.
-	 fifo_xlnx_32x36_2clk fifo_xlnx_32x36_2clk_i1 (
+	 fifo_xlnx_8kx36_2clk fifo_xlnx_32x36_2clk_i1 (
 						       .rst(rst),
 						       .wr_clk(int_clk),
 						       .rd_clk(ext_clk),
@@ -149,7 +149,7 @@ module ext_fifo
 						       .empty(empty1));
 	 
 	 // FIFO buffers data read from external FIFO into DSP clk domain and to TX DSP.
-	 fifo_xlnx_512x36_2clk_prog_full fifo_xlnx_32x36_2clk_prog_full_i1 (
+	 fifo_xlnx_256kx36_2clk_prog_full fifo_xlnx_32x36_2clk_prog_full_i1 (
 									    .rst(rst),
 									    .wr_clk(ext_clk),
 									    .rd_clk(int_clk),

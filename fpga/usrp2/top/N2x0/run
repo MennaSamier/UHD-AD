@@ -1,0 +1,4 @@
+#!/bin/bash
+
+make -f Makefile.ML605 bin | tee command.log
+make -f Makefile.ML605 mcs | tee mcs.log
