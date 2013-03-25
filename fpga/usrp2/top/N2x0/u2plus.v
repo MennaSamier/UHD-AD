@@ -24,10 +24,21 @@ module u2plus
   (
    input CLK_FPGA_P, input CLK_FPGA_N,  // Diff
 `ifdef ML605
-   output CLK_SMA_P, output CLK_SMA_N,
-   input CLK_FMC_P, input CLK_FMC_N,
-   output CLK_OUT_P, output CLK_OUT_N,
+   input CLK_SMA_P, input CLK_SMA_N,
    input CLK_IN_SEL,
+   input DIP_2,
+   input DIP_3,
+   input DIP_4,
+   input DIP_5,
+   input DIP_6,
+   input DIP_7,
+   input DIP_8,
+   input BUTTON_E,
+   input BUTTON_S,
+   input BUTTON_N,
+   output LED_E,
+   output LED_S,
+   output LED_N,
    
    input  PLL_CLK_RESET,
    output PLL_CLK_LOCKED,
@@ -345,25 +356,16 @@ wire clk_rx, clk_rx_180;
     .CLK_OUT1(clk_rx),     // OUT
     .CLK_OUT2(clk_rx_180));    // OUT
 
-wire clk_fmc;
-  IBUFGDS clk_fmc_buf
-   (.O  (clk_fmc),
-    .I  (CLK_FMC_P),
-    .IB (CLK_FMC_N));
-
    pll_dsp pll_dsp_instance
    (// Clock in ports
-    .CLK_IN1(dsp_clk_100M),  // IN 100MHz
-    .CLK_IN2(clk_fmc), // IN from FMC 122.88MHz
-    .CLK_IN_SEL(CLK_IN_SEL), // High select 1, low select 2
+    .CLK_IN1_P(CLK_SMA_P),  // IN 100MHz
+    .CLK_IN1_N(CLK_SMA_N),  // IN 100MHz
     .RESET(PLL_DSP_RESET),
     // Clock out ports
     .LOCKED(PLL_DSP_LOCKED),
     .CLK_OUT1(dsp_clk),    // OUT 122.88MHz
     .CLK_OUT2(wb_clk));    // OUT 61.44MHz
 
-   OBUFDS clk_out_pin (.O(CLK_OUT_P),.OB(CLK_OUT_N),.I(dsp_clk));
-   OBUFDS clk_sma_out_pin (.O(CLK_SMA_P),.OB(CLK_SMA_N),.I(dsp_clk));
 `endif
 
 `ifndef ML605
@@ -647,6 +649,8 @@ wire clk_fmc;
             .dac_dci_out_n(DAC_DCI_n),
             .dac_frame_out_p(DAC_FRAME_p),
             .dac_frame_out_n(DAC_FRAME_n),
+            .delay_value({DIP_4,DIP_5,DIP_6,DIP_7,DIP_8}),
+            .delay_reset(BUTTON_E),
             .out_p({DAC_15_p,DAC_14_p,DAC_13_p,DAC_12_p,DAC_11_p,DAC_10_p,DAC_9_p,DAC_8_p,DAC_7_p,DAC_6_p,DAC_5_p,DAC_4_p,DAC_3_p,DAC_2_p,DAC_1_p,DAC_0_p}),
             .out_n({DAC_15_n,DAC_14_n,DAC_13_n,DAC_12_n,DAC_11_n,DAC_10_n,DAC_9_n,DAC_8_n,DAC_7_n,DAC_6_n,DAC_5_n,DAC_4_n,DAC_3_n,DAC_2_n,DAC_1_n,DAC_0_n}));
 
@@ -789,5 +793,8 @@ wire clk_fmc;
    assign debug[1] = PHY_INTn;
    assign debug[2] = FPGA_RESET;
    assign PHY_RESETn = (~FPGA_RESET)&(PHY_RESETn_internal);
+   assign LED_E = 1'b0;
+   assign LED_S = 1'b0;
+   assign LED_N = 1'b0;
 `endif   
 endmodule // u2plus
