@@ -55,23 +55,21 @@
 // "Output    Output      Phase     Duty      Pk-to-Pk        Phase"
 // "Clock    Freq (MHz) (degrees) Cycle (%) Jitter (ps)  Error (ps)"
 //----------------------------------------------------------------------------
-// CLK_OUT1___100.000______0.000______50.0______163.887____164.801
-// CLK_OUT2____50.000______0.000______50.0______190.956____164.801
+// CLK_OUT1___122.880______0.000______50.0______124.788____133.949
+// CLK_OUT2____61.440______0.000______50.0______142.593____133.949
 //
 //----------------------------------------------------------------------------
 // "Input Clock   Freq (MHz)    Input Jitter (UI)"
 //----------------------------------------------------------------------------
-// __primary_________100.000____________0.010
-// _secondary_______122.880____________0.010
+// __primary__________122.88____________0.010
 
 `timescale 1ps/1ps
 
-(* CORE_GENERATION_INFO = "pll_dsp,clk_wiz_v3_3,{component_name=pll_dsp,use_phase_alignment=true,use_min_o_jitter=false,use_max_i_jitter=false,use_dyn_phase_shift=false,use_inclk_switchover=true,use_dyn_reconfig=false,feedback_source=FDBK_AUTO,primtype_sel=MMCM_ADV,num_out_clk=2,clkin1_period=10.000,clkin2_period=8.138,use_power_down=false,use_reset=true,use_locked=true,use_inclk_stopped=false,use_status=false,use_freeze=false,use_clk_valid=false,feedback_type=SINGLE,clock_mgr_type=MANUAL,manual_override=false}" *)
+(* CORE_GENERATION_INFO = "pll_dsp,clk_wiz_v3_3,{component_name=pll_dsp,use_phase_alignment=true,use_min_o_jitter=true,use_max_i_jitter=false,use_dyn_phase_shift=false,use_inclk_switchover=false,use_dyn_reconfig=false,feedback_source=FDBK_AUTO,primtype_sel=MMCM_ADV,num_out_clk=2,clkin1_period=8.138,clkin2_period=8.138,use_power_down=false,use_reset=true,use_locked=true,use_inclk_stopped=false,use_status=false,use_freeze=false,use_clk_valid=false,feedback_type=SINGLE,clock_mgr_type=MANUAL,manual_override=false}" *)
 module pll_dsp
  (// Clock in ports
-  input         CLK_IN1,
-  input         CLK_IN2,
-  input         CLK_IN_SEL,
+  input         CLK_IN1_P,
+  input         CLK_IN1_N,
   // Clock out ports
   output        CLK_OUT1,
   output        CLK_OUT2,
@@ -82,13 +80,11 @@ module pll_dsp
 
   // Input buffering
   //------------------------------------
-  BUFG clkin1_buf
-   (.O (clkin1),
-    .I (CLK_IN1));
+  IBUFGDS clkin1_buf
+   (.O  (clkin1),
+    .I  (CLK_IN1_P),
+    .IB (CLK_IN1_N));
 
-  BUFG clkin2_buf
-   (.O (clkin2),
-    .I (CLK_IN2));
 
   // Clocking primitive
   //------------------------------------
@@ -131,10 +127,8 @@ module pll_dsp
     .CLKOUT1_PHASE        (0.000),
     .CLKOUT1_DUTY_CYCLE   (0.500),
     .CLKOUT1_USE_FINE_PS  ("FALSE"),
-    .CLKIN1_PERIOD        (10.000),
-    .REF_JITTER1          (0.010),
-    .CLKIN2_PERIOD        (8.138),
-    .REF_JITTER2          (0.010))
+    .CLKIN1_PERIOD        (8.138),
+    .REF_JITTER1          (0.010))
   mmcm_adv_inst
     // Output clocks
    (.CLKFBOUT            (clkfbout),
@@ -153,8 +147,9 @@ module pll_dsp
      // Input clock control
     .CLKFBIN             (clkfbout_buf),
     .CLKIN1              (clkin1),
-    .CLKIN2              (clkin2),
-    .CLKINSEL            (CLK_IN_SEL),
+    .CLKIN2              (1'b0),
+     // Tied to always select the primary input clock
+    .CLKINSEL            (1'b1),
     // Ports for dynamic reconfiguration
     .DADDR               (7'h0),
     .DCLK                (1'b0),
