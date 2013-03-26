@@ -1,6 +1,6 @@
 // file: pll_rx.v
 // 
-// (c) Copyright 2008 - 2010 Xilinx, Inc. All rights reserved.
+// (c) Copyright 2008 - 2011 Xilinx, Inc. All rights reserved.
 // 
 // This file contains confidential and proprietary information
 // of Xilinx, Inc. and is protected under U.S. and
@@ -52,20 +52,20 @@
 // None
 //
 //----------------------------------------------------------------------------
-// Output     Output      Phase    Duty Cycle   Pk-to-Pk     Phase
-// Clock     Freq (MHz)  (degrees)    (%)     Jitter (ps)  Error (ps)
+// "Output    Output      Phase     Duty      Pk-to-Pk        Phase"
+// "Clock    Freq (MHz) (degrees) Cycle (%) Jitter (ps)  Error (ps)"
 //----------------------------------------------------------------------------
-// CLK_OUT1   125.000      0.000      50.0      119.348     96.948
-// CLK_OUT2   125.000    180.000      50.0      119.348     96.948
+// CLK_OUT1___125.000______0.000______50.0______119.348_____96.948
+// CLK_OUT2___125.000____180.000______50.0______119.348_____96.948
 //
 //----------------------------------------------------------------------------
-// Input Clock   Input Freq (MHz)   Input Jitter (UI)
+// "Input Clock   Freq (MHz)    Input Jitter (UI)"
 //----------------------------------------------------------------------------
-// primary         125.000            0.010
+// __primary_________125.000____________0.010
 
 `timescale 1ps/1ps
 
-(* CORE_GENERATION_INFO = "pll_rx,clk_wiz_v1_8,{component_name=pll_rx,use_phase_alignment=true,use_min_o_jitter=false,use_max_i_jitter=false,use_dyn_phase_shift=false,use_inclk_switchover=false,use_dyn_reconfig=false,feedback_source=FDBK_AUTO,primtype_sel=MMCM_ADV,num_out_clk=2,clkin1_period=8.0,clkin2_period=8.0,use_power_down=false,use_reset=false,use_locked=false,use_inclk_stopped=false,use_status=false,use_freeze=false,use_clk_valid=false,feedback_type=SINGLE,clock_mgr_type=MANUAL,manual_override=false}" *)
+(* CORE_GENERATION_INFO = "pll_rx,clk_wiz_v3_3,{component_name=pll_rx,use_phase_alignment=true,use_min_o_jitter=false,use_max_i_jitter=false,use_dyn_phase_shift=false,use_inclk_switchover=false,use_dyn_reconfig=false,feedback_source=FDBK_AUTO,primtype_sel=MMCM_ADV,num_out_clk=2,clkin1_period=8.000,clkin2_period=8.000,use_power_down=false,use_reset=false,use_locked=false,use_inclk_stopped=false,use_status=false,use_freeze=false,use_clk_valid=false,feedback_type=SINGLE,clock_mgr_type=MANUAL,manual_override=false}" *)
 module pll_rx
  (// Clock in ports
   input         CLK_IN1,
@@ -123,7 +123,7 @@ module pll_rx
     .CLKOUT1_PHASE        (180.000),
     .CLKOUT1_DUTY_CYCLE   (0.500),
     .CLKOUT1_USE_FINE_PS  ("FALSE"),
-    .CLKIN1_PERIOD        (8.0),
+    .CLKIN1_PERIOD        (8.000),
     .REF_JITTER1          (0.010))
   mmcm_adv_inst
     // Output clocks
@@ -171,7 +171,6 @@ module pll_rx
   BUFG clkf_buf
    (.O (clkfbout_buf),
     .I (clkfbout));
-
 
   BUFG clkout1_buf
    (.O   (CLK_OUT1),

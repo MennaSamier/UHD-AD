@@ -1,6 +1,6 @@
 // file: pll_dsp.v
 // 
-// (c) Copyright 2008 - 2010 Xilinx, Inc. All rights reserved.
+// (c) Copyright 2008 - 2011 Xilinx, Inc. All rights reserved.
 // 
 // This file contains confidential and proprietary information
 // of Xilinx, Inc. and is protected under U.S. and
@@ -52,27 +52,27 @@
 // None
 //
 //----------------------------------------------------------------------------
-// Output     Output      Phase    Duty Cycle   Pk-to-Pk     Phase
-// Clock     Freq (MHz)  (degrees)    (%)     Jitter (ps)  Error (ps)
+// "Output    Output      Phase     Duty      Pk-to-Pk        Phase"
+// "Clock    Freq (MHz) (degrees) Cycle (%) Jitter (ps)  Error (ps)"
 //----------------------------------------------------------------------------
-// CLK_OUT1   100.000      0.000      50.0      220.539    240.486
+// CLK_OUT1___122.880______0.000______50.0______124.788____133.949
+// CLK_OUT2____61.440______0.000______50.0______142.593____133.949
 //
 //----------------------------------------------------------------------------
-// Input Clock   Input Freq (MHz)   Input Jitter (UI)
+// "Input Clock   Freq (MHz)    Input Jitter (UI)"
 //----------------------------------------------------------------------------
-// primary         100.000            0.010
-// secondary       122.880            0.010
+// __primary__________122.88____________0.010
 
 `timescale 1ps/1ps
 
-(* CORE_GENERATION_INFO = "pll_dsp,clk_wiz_v1_8,{component_name=pll_dsp,use_phase_alignment=true,use_min_o_jitter=false,use_max_i_jitter=false,use_dyn_phase_shift=false,use_inclk_switchover=true,use_dyn_reconfig=false,feedback_source=FDBK_AUTO,primtype_sel=MMCM_ADV,num_out_clk=1,clkin1_period=10.0,clkin2_period=8.138,use_power_down=false,use_reset=true,use_locked=true,use_inclk_stopped=false,use_status=false,use_freeze=false,use_clk_valid=false,feedback_type=SINGLE,clock_mgr_type=MANUAL,manual_override=false}" *)
+(* CORE_GENERATION_INFO = "pll_dsp,clk_wiz_v3_3,{component_name=pll_dsp,use_phase_alignment=true,use_min_o_jitter=true,use_max_i_jitter=false,use_dyn_phase_shift=false,use_inclk_switchover=false,use_dyn_reconfig=false,feedback_source=FDBK_AUTO,primtype_sel=MMCM_ADV,num_out_clk=2,clkin1_period=8.138,clkin2_period=8.138,use_power_down=false,use_reset=true,use_locked=true,use_inclk_stopped=false,use_status=false,use_freeze=false,use_clk_valid=false,feedback_type=SINGLE,clock_mgr_type=MANUAL,manual_override=false}" *)
 module pll_dsp
  (// Clock in ports
-  input         CLK_IN1,
-  input         CLK_IN2,
-  input         CLK_IN_SEL,
+  input         CLK_IN1_P,
+  input         CLK_IN1_N,
   // Clock out ports
   output        CLK_OUT1,
+  output        CLK_OUT2,
   // Status and control signals
   input         RESET,
   output        LOCKED
@@ -80,13 +80,11 @@ module pll_dsp
 
   // Input buffering
   //------------------------------------
-  BUFG clkin1_buf
-   (.O (clkin1),
-    .I (CLK_IN1));
+  IBUFGDS clkin1_buf
+   (.O  (clkin1),
+    .I  (CLK_IN1_P),
+    .IB (CLK_IN1_N));
 
-  BUFG clkin2_buf
-   (.O (clkin2),
-    .I (CLK_IN2));
 
   // Clocking primitive
   //------------------------------------
@@ -100,7 +98,6 @@ module pll_dsp
   wire        clkfbout_buf;
   wire        clkfboutb_unused;
   wire        clkout0b_unused;
-  wire        clkout1_unused;
   wire        clkout1b_unused;
   wire        clkout2_unused;
   wire        clkout2b_unused;
@@ -118,25 +115,27 @@ module pll_dsp
     .CLOCK_HOLD           ("FALSE"),
     .COMPENSATION         ("ZHOLD"),
     .STARTUP_WAIT         ("FALSE"),
-    .DIVCLK_DIVIDE        (4),
-    .CLKFBOUT_MULT_F      (39.000),
+    .DIVCLK_DIVIDE        (2),
+    .CLKFBOUT_MULT_F      (19.000),
     .CLKFBOUT_PHASE       (0.000),
     .CLKFBOUT_USE_FINE_PS ("FALSE"),
-    .CLKOUT0_DIVIDE_F     (9.750),
+    .CLKOUT0_DIVIDE_F     (9.500),
     .CLKOUT0_PHASE        (0.000),
     .CLKOUT0_DUTY_CYCLE   (0.500),
     .CLKOUT0_USE_FINE_PS  ("FALSE"),
-    .CLKIN1_PERIOD        (10.0),
-    .REF_JITTER1          (0.010),
-    .CLKIN2_PERIOD        (8.138),
-    .REF_JITTER2          (0.010))
+    .CLKOUT1_DIVIDE       (19),
+    .CLKOUT1_PHASE        (0.000),
+    .CLKOUT1_DUTY_CYCLE   (0.500),
+    .CLKOUT1_USE_FINE_PS  ("FALSE"),
+    .CLKIN1_PERIOD        (8.138),
+    .REF_JITTER1          (0.010))
   mmcm_adv_inst
     // Output clocks
    (.CLKFBOUT            (clkfbout),
     .CLKFBOUTB           (clkfboutb_unused),
     .CLKOUT0             (clkout0),
     .CLKOUT0B            (clkout0b_unused),
-    .CLKOUT1             (clkout1_unused),
+    .CLKOUT1             (clkout1),
     .CLKOUT1B            (clkout1b_unused),
     .CLKOUT2             (clkout2_unused),
     .CLKOUT2B            (clkout2b_unused),
@@ -148,8 +147,9 @@ module pll_dsp
      // Input clock control
     .CLKFBIN             (clkfbout_buf),
     .CLKIN1              (clkin1),
-    .CLKIN2              (clkin2),
-    .CLKINSEL            (CLK_IN_SEL),
+    .CLKIN2              (1'b0),
+     // Tied to always select the primary input clock
+    .CLKINSEL            (1'b1),
     // Ports for dynamic reconfiguration
     .DADDR               (7'h0),
     .DCLK                (1'b0),
@@ -176,11 +176,14 @@ module pll_dsp
    (.O (clkfbout_buf),
     .I (clkfbout));
 
-
   BUFG clkout1_buf
    (.O   (CLK_OUT1),
     .I   (clkout0));
 
+
+  BUFG clkout2_buf
+   (.O   (CLK_OUT2),
+    .I   (clkout1));
 
 
 

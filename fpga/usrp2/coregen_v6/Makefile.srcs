@@ -34,4 +34,10 @@ fifo_xlnx_8kx36_2clk.v \
 fifo_xlnx_8kx36_2clk.xco \
 fifo_xlnx_8kx36_2clk_prog_full.v \
 fifo_xlnx_8kx36_2clk_prog_full.xco \
+fifo_xlnx_64kx36_2clk_prog_full.v \
+fifo_xlnx_64kx36_2clk_prog_full.xco \
+fifo_xlnx_256kx36_2clk_prog_full.v \
+fifo_xlnx_256kx36_2clk_prog_full.xco \
+fifo_xlnx_1024kx36_2clk_prog_full.v \
+fifo_xlnx_1024kx36_2clk_prog_full.xco \
 ))
